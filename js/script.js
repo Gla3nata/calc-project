@@ -18,11 +18,6 @@ const totalInput4 = document.getElementsByClassName('total-input')[3];
 const totalInput5 = document.getElementsByClassName('total-input')[4];
 let screens =  document.querySelectorAll('.screen');
 
-
-console.log('Total inputs:', totalInput1);
-console.log('Screens:', screens);
-
-
 const appData = {
     title: '',
     screens: '',
