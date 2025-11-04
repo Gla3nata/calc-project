@@ -20,15 +20,14 @@ let screens =  document.querySelectorAll('.screen');
 
 const appData = {
     title: '',
-    screens: '',
+     screens: [],
     screenPrice: 0,
     adaptive: true,
     rollback: 10,
     allServicePrices: 0,
     fullPrice: 0,
     servicePercentPrice: 0,
-    service1: '',
-    service2: '',
+    services: {},
     start: function () {
         this.asking();
         this.allServicePrices = this.getAllServicePrices();
