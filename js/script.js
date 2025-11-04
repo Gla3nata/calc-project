@@ -1,26 +1,26 @@
 'use strict';
 
 const title = document.getElementsByTagName('h1')[0];
-
-const handlerBtns = document.getElementsByClassName('handler_btn');
-const calculate = handlerBtns[0];
-const reset = handlerBtns[1];
-
-const addScreen = document.querySelector('.screen-btn');
+const buttonPlus = document.querySelector('.screen-btn');
 const otherPercent = document.querySelectorAll('.other-items.percent');
 const otherNumber = document.querySelectorAll('.other-items.number');
-const range  = document.querySelector('.rollback input[type=range]');
+
+const handlerBtns = document.getElementsByClassName('handler_btn');
+const startBtn = handlerBtns[0];
+const resetBtn = handlerBtns[1];
+
+const range = document.querySelector('.rollback input[type=range]');
 const rangeValue = document.querySelector('.rollback .range-value');
 const totalInput1 = document.getElementsByClassName('total-input')[0];
 const totalInput2 = document.getElementsByClassName('total-input')[1];
 const totalInput3 = document.getElementsByClassName('total-input')[2];
 const totalInput4 = document.getElementsByClassName('total-input')[3];
 const totalInput5 = document.getElementsByClassName('total-input')[4];
-let screens =  document.querySelectorAll('.screen');
+let screens = document.querySelectorAll('.screen');
 
 const appData = {
     title: '',
-     screens: [],
+    screens: [],
     screenPrice: 0,
     adaptive: true,
     rollback: 10,
@@ -28,63 +28,80 @@ const appData = {
     fullPrice: 0,
     servicePercentPrice: 0,
     services: {},
+    init: function () {
+        appData.addTitile();
+        startBtn.addEventListener('click', appData.start)
+        buttonPlus.addEventListener('click', appData.addScreenBlock)
+    },
+    addTitile: function () {
+        document.title = title.textContent;
+    },
     start: function () {
-        this.asking();
-        this.allServicePrices = this.getAllServicePrices();
-        this.fullPrice = this.getFullPrice();
-        this.servicePercentPrice = this.getServicePercentPrices();
-        this.title = this.getTitle();
-        this.logger();
+        appData.addScreens();
+        // appData.asking();
+        // appData.addPrices();
+        // appData.getFullPrice();
+        // appData.getServicePercentPrices();
+        // appData.getTitle();
+        // appData.logger();
+    },
+    addScreens: function () {
+        let screens = document.querySelectorAll('.screen');
+        screens.forEach(function(screen, index){
+            const select = screen.querySelector('select')
+            const input = screen.querySelector('input')
+            const selectName = select.options[select.selectedIndex].textContent
+
+            appData.screens.push({ 
+                id: index, 
+                name: selectName, 
+                price: +select.value * +input.value
+            })
+        })
+                console.log( appData.screens);
+    },
+    addScreenBlock: function(){
+        const cloneScreen = screens[0].cloneNode(true)
+        screens[screens.length - 1].after(cloneScreen)
     },
     asking: function () {
-        appData.title = prompt('Как называется ваш проект', 'Калькулятор');
-        appData.screens = prompt('Какие типы экранов нужно разработать', 'Простые, Сложные, Интерактивные');
-
-        do {
-            appData.screenPrice = prompt('Сколько будет стоить данная работа?');
-        } while (!appData.isNumber(appData.screenPrice))
-
-        appData.adaptive = confirm('Нужен ли адаптив на сайте?');
-    },
-    logger: function () {
-        for (let key in this) {
-            if (typeof this[key] !== 'function') {
-            console.log(key + ': ' + this[key]);
-        }
-        }
-    },
-
-    isNumber: function (num) {
-        return !isNaN(parseFloat(num)) && isFinite(num)
-    },
-    getAllServicePrices: function () {
-        let sum = 0
-
         for (let i = 0; i < 2; i++) {
-            let price;
-
-            if (i === 0) {
-                appData.service1 = prompt('Какой дополнительный тип услуги нужен?');
-            } else if (i === 1) {
-                appData.service2 = prompt('Какой дополнительный тип услуги нужен?');
-            }
-
+            let name;
             do {
-                price = prompt('Сколько будет стоить данная работа?');
+                name = prompt("Какой дополнительный тип услуги нужен?");
+            } while (!appData.isText(name))
+
+            let price = 0;
+            do {
+                price = prompt('Сколько это будет стоить? (дополнительная работа)');
             } while (!appData.isNumber(price))
-            sum += +price;
+
+            let uniqueKey = name;
+            let counter = 1;
+            while (appData.services[uniqueKey] !== undefined) {
+                uniqueKey = `${name} (${counter})`;
+                counter++;
+            }
+            appData.services[name] = +price
         }
-        return sum
+    },
+    addPrices: function () {
+        appData.screenPrice = appData.screens.reduce(function (sum, screen) {
+            return sum + +screen.price;
+        }, 0);
+        for (let key in appData.services) {
+            appData.allServicePrices += appData.services[key]
+        }
     },
     getFullPrice: function () {
-        return +appData.screenPrice + appData.allServicePrices
+        appData.fullPrice = +appData.screenPrice + appData.allServicePrices
     },
     getServicePercentPrices: function () {
-        return appData.fullPrice - (appData.fullPrice * (appData.rollback / 100));
+        appData.servicePercentPrice = appData.fullPrice - (appData.fullPrice * (appData.rollback / 100));
     },
     getTitle: function () {
         let processedTitle = appData.title.trim().toLowerCase();
-        return processedTitle.charAt(0).toUpperCase() + processedTitle.slice(1);
+        appData.title = processedTitle.charAt(0).toUpperCase() + processedTitle.slice(1);
     },
     getrollbackMessage: function (price) {
         if (price >= 30000) {
@@ -96,7 +113,12 @@ const appData = {
         } else {
             return 'Что то пошло не так'
         }
+    },
+    logger: function () {
+        console.log(appData.fullPrice)
+        console.log(appData.servicePercentPrice)
+        console.log(appData.screens)
     }
 }
-// appData.start()
 
+appData.init()
