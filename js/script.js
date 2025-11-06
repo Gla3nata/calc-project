@@ -44,8 +44,6 @@ const appData = {
         range.addEventListener('input', function () {
             const value = this.value;
             rangeValue.textContent = value;
-            // circle.style.width = value;
-            // circle.style.height = value;
             appData.rollback = value;
         });
     },
@@ -72,7 +70,6 @@ const appData = {
         appData.addScreens();
         appData.addServices();
         appData.addPrices();
-        // appData.getServicePercentPrices();
         // appData.logger();
         appData.showResult();
     },
