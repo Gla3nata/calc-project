@@ -142,8 +142,6 @@ const appData = {
         }
         appData.fullPrice = +appData.screenPrice + appData.servicesPricesPercent + appData.servicesPricesNumber
         appData.servicePercentPrice = appData.fullPrice - (appData.fullPrice * (appData.rollback / 100));
-
-        console.log('тут countScreens', appData.countScreens);
     },
     logger: function () {
         console.log(appData.fullPrice)
