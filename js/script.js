@@ -9,7 +9,7 @@ const handlerBtns = document.getElementsByClassName('handler_btn');
 const startBtn = handlerBtns[0];
 const resetBtn = handlerBtns[1];
 
-const range = document.querySelector('.rollback input[type=range]');
+let range = document.querySelector('.rollback input[type=range]');
 const rangeValue = document.querySelector('.rollback .range-value');
 
 const total = document.getElementsByClassName('total-input')[0];
@@ -32,18 +32,51 @@ const appData = {
     servicesPercent: {},
     servicesNumber: {},
     init: function () {
+        screens.forEach(screen => appData.addScreenInputsListeners(screen));
+        appData.updateStartBtnState();
+        appData.checkRange();
+
         appData.addTitile();
         startBtn.addEventListener('click', appData.start)
         buttonPlus.addEventListener('click', appData.addScreenBlock)
+    },
+    checkRange: function () {
+        range.addEventListener('input', function () {
+            const value = this.value + '%';
+            rangeValue.textContent = value;
+            // circle.style.width = value;
+            // circle.style.height = value;
+           appData.rollback = value;
+        });
+    },
+    checkScreens: function () {
+        let screens = document.querySelectorAll('.screen');
+        for (let screen of screens) {
+            const select = screen.querySelector('select');
+            const input = screen.querySelector('input[type="number"], input[type="text"]');
+            if (!select.value || +input.value <= 0) {
+                return false;
+            }
+        }
+        return true;
+    },
+    updateStartBtnState: function () {
+        const isEnabled = appData.checkScreens();
+        startBtn.disabled = !isEnabled;
+        startBtn.style.opacity = isEnabled ? '1' : '0.5';
     },
     addTitile: function () {
         document.title = title.textContent;
     },
     start: function () {
+        if (!appData.checkScreens()) {
+            alert('Пожалуйста, выберите тип экрана и введите количество во всех блоках');
+            return;
+        }
         appData.addScreens();
         appData.addServices();
         appData.addPrices();
-        // appData.getServicePercentPrices();
+        appData.getServicePercentPrices();
         // appData.logger();
         appData.showResult();
     },
@@ -88,8 +121,17 @@ const appData = {
         })
     },
     addScreenBlock: function () {
-        const cloneScreen = screens[0].cloneNode(true)
-        screens[screens.length - 1].after(cloneScreen)
+        const cloneScreen = screens[0].cloneNode(true);
+        screens[screens.length - 1].after(cloneScreen);
+        appData.addScreenInputsListeners(cloneScreen);
+        appData.updateStartBtnState();
+    },
+    addScreenInputsListeners: function (screen) {
+        const select = screen.querySelector('select');
+        const input = screen.querySelector('input');
+
+        select.addEventListener('change', appData.updateStartBtnState);
+        input.addEventListener('input', appData.updateStartBtnState);
     },
     addPrices: function () {
         for (let screen of appData.screens) {
@@ -105,6 +147,7 @@ const appData = {
     },
 
     getServicePercentPrices: function () {
+    console.log('rollback', appData.rollback);
         appData.servicePercentPrice = appData.fullPrice - (appData.fullPrice * (appData.rollback / 100));
     },
     getrollbackMessage: function (price) {
