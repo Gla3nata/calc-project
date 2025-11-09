@@ -40,6 +40,29 @@ const appData = {
         startBtn.addEventListener('click', this.start.bind(this));
         buttonPlus.addEventListener('click', this.addScreenBlock.bind(this));
         resetBtn.addEventListener('click', this.reset.bind(this));
+
+        const cmsCheckbox = document.getElementById('cms-open');
+        const hiddenCmsVariants = document.querySelector('.hidden-cms-variants');
+        const cmsSelect = hiddenCmsVariants.querySelector('select');
+        const cmsInputOther = hiddenCmsVariants.querySelector('.main-controls__input');
+
+        if (cmsCheckbox && hiddenCmsVariants && cmsSelect && cmsInputOther) {
+            cmsCheckbox.addEventListener('change', () => {
+                hiddenCmsVariants.style.display = cmsCheckbox.checked ? 'flex' : 'none';
+                if (!cmsCheckbox.checked) {
+                    cmsSelect.selectedIndex = 0;
+                    cmsInputOther.style.display = 'none';
+                    cmsInputOther.querySelector('input').value = '';
+                }
+            });
+
+            cmsSelect.addEventListener('change', () => {
+                cmsInputOther.style.display = cmsSelect.value === 'other' ? 'flex' : 'none';
+                if (cmsSelect.value !== 'other') {
+                    cmsInputOther.querySelector('input').value = '';
+                }
+            });
+        }
     },
     checkRange: function () {
         range.addEventListener('input', (event) => {
@@ -69,9 +92,9 @@ const appData = {
     },
     start: function () {
         this.addScreens();
-        this.addServices();
         this.addPrices();
         // this.logger();
+        this.addServices();
         this.showResult();
         this.lockLeftControls();
         this.toggleButtons(true);
@@ -116,6 +139,16 @@ const appData = {
             this.addScreenInputsListeners(firstScreen);
         }
         this.updateStartBtnState();
+
+        const cmsCheckbox = document.getElementById('cms-open');
+        const hiddenCmsVariants = document.querySelector('.hidden-cms-variants');
+        const cmsSelect = document.getElementById('cms-select');
+        const cmsInputOther = document.getElementById('cms-other-input');
+        if (cmsCheckbox) cmsCheckbox.checked = false;
+        if (hiddenCmsVariants) hiddenCmsVariants.style.display = 'none';
+        if (cmsSelect) cmsSelect.selectedIndex = 0;
+        if (cmsInputOther) cmsInputOther.value = '';
+        if (cmsInputOther && cmsInputOther.parentElement) cmsInputOther.parentElement.style.display = 'none';
     },
     addScreens: function () {
         let screens = document.querySelectorAll('.screen');
@@ -138,6 +171,7 @@ const appData = {
             const check = item.querySelector('input[type=checkbox]')
             const label = item.querySelector('label')
             const input = item.querySelector('input[type=text]')
+
             if (check.checked) {
                 this.servicesPercent[label.textContent] = +input.value
             }
@@ -151,7 +185,18 @@ const appData = {
                 this.servicesNumber[label.textContent] = +input.value
             }
         })
+        const cmsSelect = document.getElementById('cms-select');
+        const cmsInputOther = document.getElementById('cms-other-input');
+        if (cmsSelect && cmsSelect.value) {
+            const value = cmsSelect.value;
+            if (value === 'other' && cmsInputOther && +cmsInputOther.value > 0) {
+                this.servicesPricesPercent += this.screenPrice * (+cmsInputOther.value / 100);
+            } else if (!isNaN(+value) && +value > 0) {
+                this.servicesPricesPercent += this.screenPrice * (+value / 100);
+            }
+        }
     },
+
     addScreenBlock: function () {
         const cloneScreen = screens[0].cloneNode(true);
         screens[screens.length - 1].after(cloneScreen);
@@ -197,6 +242,9 @@ const appData = {
             this.screenPrice += +screen.price;
             this.countScreens += +screen.count;
         }
+        this.servicesPricesPercent = 0;
+        this.servicesPricesNumber = 0;
+
         for (let key in this.servicesNumber) {
             this.servicesPricesNumber += this.servicesNumber[key]
         }
@@ -212,6 +260,7 @@ const appData = {
         console.log(this.servicePercentPrice)
         console.log(this.screens)
     }
+
 }
 
 appData.init()
