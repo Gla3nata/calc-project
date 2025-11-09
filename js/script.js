@@ -39,6 +39,7 @@ const appData = {
         this.addTitile();
         startBtn.addEventListener('click', this.start.bind(this));
         buttonPlus.addEventListener('click', this.addScreenBlock.bind(this));
+        resetBtn.addEventListener('click', this.reset.bind(this));
     },
     checkRange: function () {
         range.addEventListener('input', (event) => {
@@ -72,6 +73,8 @@ const appData = {
         this.addPrices();
         // this.logger();
         this.showResult();
+        this.lockLeftControls();
+        this.toggleButtons(true);
     },
     showResult: function () {
         total.value = this.screenPrice
@@ -79,6 +82,40 @@ const appData = {
         fullTotalCount.value = this.fullPrice
         totalCount.value = this.countScreens
         totalCountRollback.value = this.servicePercentPrice
+    },
+    reset: function () {
+        const screens = document.querySelectorAll('.screen');
+        screens.forEach((screen, index) => {
+            if (index > 0) {
+                screen.remove();
+            }
+        });
+        this.screens = [];
+
+        total.value = '';
+        fullTotalCount.value = '';
+        totalCountOther.value = '';
+        totalCount.value = '';
+        totalCountRollback.value = '';
+        this.servicesPercent = {};
+        this.servicesNumber = {};
+        this.servicesPricesPercent = 0;
+        this.servicesPricesNumber = 0;
+        this.screenPrice = 0;
+        this.fullPrice = 0;
+        this.servicePercentPrice = 0;
+
+        this.unlockLeftControls();
+        this.toggleButtons(false);
+        const firstScreen = document.querySelector('.screen');
+        if (firstScreen) {
+            const select = firstScreen.querySelector('select');
+            if (select) select.selectedIndex = 0;
+            const inputText = firstScreen.querySelector('input[type=text]');
+            if (inputText) inputText.value = '';
+            this.addScreenInputsListeners(firstScreen);
+        }
+        this.updateStartBtnState();
     },
     addScreens: function () {
         let screens = document.querySelectorAll('.screen');
@@ -129,6 +166,30 @@ const appData = {
         select.addEventListener('change', this.updateStartBtnState.bind(this));
         input.addEventListener('input', this.updateStartBtnState.bind(this));
     },
+    lockLeftControls: function (screen) {
+        const screens = document.querySelectorAll('.screen');
+        screens.forEach(screen => {
+            const select = screen.querySelector('select');
+            const input = screen.querySelector('input[type="text"]');
+
+            if (select) select.disabled = true;
+            if (input) input.disabled = true;
+        });
+    },
+    unlockLeftControls: function () {
+        const screens = document.querySelectorAll('.screen');
+        screens.forEach(screen => {
+            const select = screen.querySelector('select');
+            const input = screen.querySelector('input[type="text"]');
+
+            if (select) select.disabled = false;
+            if (input) input.disabled = false;
+        });
+    },
+    toggleButtons: function (isCalculated) {
+        startBtn.style.display = isCalculated ? 'none' : '';
+        resetBtn.style.display = isCalculated ? '' : 'none';
+    },
     addPrices: function () {
         this.screenPrice = 0;
         this.countScreens = 0;
@@ -145,6 +206,7 @@ const appData = {
         this.fullPrice = +this.screenPrice + this.servicesPricesPercent + this.servicesPricesNumber
         this.servicePercentPrice = this.fullPrice - (this.fullPrice * (this.rollback / 100));
     },
+
     logger: function () {
         console.log(this.fullPrice)
         console.log(this.servicePercentPrice)
